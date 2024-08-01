@@ -1,46 +1,73 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useContext, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import styled from 'styled-components';
-
+import styled from "styled-components";
+import { AppContext } from "../AppContext";
+import Spinner from "./spinner/Spinner";
 
 const LoginForm: React.FC = () => {
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-    });
+  const { setErrorMessage, setErrorContext, setToken } = useContext(AppContext);
+  const [isLoading, setIsLoading] = useState(false);
 
-    const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value,
-        }));
-    };
+  const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log('send');
-        axios.post('http://localhost:5000/api/users/login', formData)
-            .then(response => {
-                console.log('UserModel logged in:', response.data);
-                localStorage.setItem('authToken', response.data.token);
-                navigate("/account");
-            })
-            .catch(error => {
-                console.error('There was an error logging in the user!', error);
-            });
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
 
-    return (
-        <Form onSubmit={handleSubmit}>
-            <Input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" required />
-            <Input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" required />
-            <SubmitButton type="submit">Login</SubmitButton>
-        </Form>
-    );
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    axios
+      .post("http://localhost:5000/api/users/login", formData)
+      .then((response) => {
+        console.log("UserModel logged in:", response.data);
+        localStorage.setItem("authToken", response.data.token);
+          setToken(response.data.token)
+        navigate("/account");
+      })
+      .catch((error) => {
+        setErrorMessage((error as Error).message);
+        setErrorContext("An error occurred while submitting the form");
+        console.error("There was an error logging in the user!", error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Spinner isLoading={isLoading} />
+      <Input
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        placeholder="Email"
+        required
+      />
+      <Input
+        type="password"
+        name="password"
+        value={formData.password}
+        onChange={handleChange}
+        placeholder="Password"
+        required
+      />
+      <SubmitButton type="submit">Login</SubmitButton>
+    </Form>
+  );
 };
 const Form = styled.form`
   display: flex;

@@ -1,35 +1,35 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import styled from "styled-components";
 
 const Header: React.FC = () => {
-    const { pathname } = useLocation();
+  const { pathname } = useLocation();
 
-    return (
-        <HeaderContainer>
-            <nav>
-                <NavList>
-                    <NavItem>
-                        <NavLink to="/" active={pathname === '/'}>
-                            Home
-                        </NavLink>
-                    </NavItem>
+  return (
+    <HeaderContainer>
+      <nav>
+        <NavList>
+          <NavItem>
+            <NavLink to="/" active={pathname === "/"}>
+              Home
+            </NavLink>
+          </NavItem>
 
-                    <NavItem>
-                        <NavLink to="/account" active={pathname === '/account'}>
-                            Profile
-                        </NavLink>
-                    </NavItem>
+          <NavItem>
+            <NavLink to="/account" active={pathname === "/account"}>
+              Profile
+            </NavLink>
+          </NavItem>
 
-                    <NavItem>
-                        <NavLink to="/people" active={pathname === '/people'}>
-                            People
-                        </NavLink>
-                    </NavItem>
-                </NavList>
-            </nav>
-        </HeaderContainer>
-    );
+          <NavItem>
+            <NavLink to="/people" active={pathname === "/people"}>
+              People
+            </NavLink>
+          </NavItem>
+        </NavList>
+      </nav>
+    </HeaderContainer>
+  );
 };
 
 const HeaderContainer = styled.header`
@@ -49,7 +49,7 @@ const NavItem = styled.li`
 `;
 
 interface NavLinkProps {
-    active: boolean;
+  active: boolean;
 }
 
 const NavLink = styled(Link)<NavLinkProps>`
@@ -58,7 +58,9 @@ const NavLink = styled(Link)<NavLinkProps>`
   font-weight: bold;
   padding: 0.5rem;
   border-radius: 4px;
-  ${({ active }) => active && `
+  ${({ active }) =>
+    active &&
+    `
     background-color: #555;
   `}
 `;

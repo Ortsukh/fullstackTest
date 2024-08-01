@@ -1,58 +1,77 @@
-import React, {useEffect, useState} from 'react';
-import axios from 'axios';
-import styled from 'styled-components';
+import React, { useContext, useEffect, useState } from "react";
+import axios from "axios";
+import styled from "styled-components";
 import dayjs from "dayjs";
+import { AppContext } from "../AppContext";
+import Spinner from "../components/spinner/Spinner";
+import { getUserAge } from "../common/helper";
 
-const noImage = require('../assets/no-image.png');
+const noImage = require("../assets/no-image.png");
 
 interface User {
-    _id: string;
-    name: string;
-    dateOfBirth: number;
-    profilePicture: string;
+  _id: string;
+  name: string;
+  dateOfBirth: string;
+  profilePicture: string;
 }
 
 const People: React.FC = () => {
-    const [users, setUsers] = useState<User[]>([]);
-    const token = localStorage.getItem('authToken');
+  const [users, setUsers] = useState<User[]>([]);
+  const { token, setErrorMessage, setErrorContext } = useContext(AppContext);
+  const [isLoading, setIsLoading] = useState(!token);
 
-    useEffect(() => {
-        axios.get('http://localhost:5000/api/users/people', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-        })
-            .then(response => {
-                setUsers(response.data);
-            })
-            .catch(error => {
-                console.error('There was an error fetching the users!', error);
-            });
-    }, []);
+  useEffect(() => {
+    setIsLoading(!token);
+  }, [token]);
 
-    const usersProfilePicturePath = (user: User) => user.profilePicture ? "http://localhost:5000/uploads/" + user.profilePicture : noImage;
-    const getUserAge = (user: User) => {
-        const date1 = dayjs(user.dateOfBirth);
-        const date2 = dayjs();
-        return date2.diff(date1, 'year');
-    }
+  useEffect(() => {
+    if (!token) return;
+    setIsLoading(true);
+    axios
+      .get("http://localhost:5000/api/users/people", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        setUsers(response.data);
+      })
+      .catch((error) => {
+        setErrorMessage((error as Error).message);
+        setErrorContext("There was an error fetching the user data!");
+        console.error("There was an error fetching the users!", error);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [token]);
 
-    return (
-        <PeopleContainer>
-            <h1>People Page</h1>
-            <UsersList>
-                {users.map(user => (
-                    <UserCard key={user._id}>
-                        <UserImage src={usersProfilePicturePath(user)} alt={`${user.name}'s profile`}/>
-                        <UserInfo>
-                            <UserName>{user.name}</UserName>
-                            <UserAge>Age: {getUserAge(user)}</UserAge>
-                        </UserInfo>
-                    </UserCard>
-                ))}
-            </UsersList>
-        </PeopleContainer>
-    );
+  const usersProfilePicturePath = (user: User) =>
+    user.profilePicture
+      ? "http://localhost:5000/uploads/" + user.profilePicture
+      : noImage;
+
+  return (
+    <PeopleContainer>
+      <Spinner isLoading={isLoading} />
+
+      <h1>People Page</h1>
+      <UsersList>
+        {users.map((user) => (
+          <UserCard key={user._id}>
+            <UserImage
+              src={usersProfilePicturePath(user)}
+              alt={`${user.name}'s profile`}
+            />
+            <UserInfo>
+              <UserName>{user.name}</UserName>
+              <UserAge>Age: {getUserAge(user.dateOfBirth)}</UserAge>
+            </UserInfo>
+          </UserCard>
+        ))}
+      </UsersList>
+    </PeopleContainer>
+  );
 };
 
 export default People;
