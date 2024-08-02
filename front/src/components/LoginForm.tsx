@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../AppContext";
@@ -37,9 +37,12 @@ const LoginForm: React.FC = () => {
         navigate("/account");
       })
       .catch((error) => {
-        setErrorMessage((error as Error).message);
-        setErrorContext("An error occurred while submitting the form");
-        console.error("There was an error logging in the user!", error);
+          const err = error as AxiosError<{message: string}>;
+          const message = (err?.response?.data?.hasOwnProperty('message')) ? (err.response.data['message']) : (error['message'])
+          setErrorMessage(message);
+          setErrorContext("An error occurred while submitting the form");
+
+
       })
       .finally(() => {
         setIsLoading(false);

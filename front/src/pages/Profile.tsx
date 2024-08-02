@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import dayjs from "dayjs";
@@ -16,7 +16,7 @@ interface UserData {
 }
 
 const Profile: React.FC = () => {
-  const { token, setErrorMessage, setErrorContext } = useContext(AppContext);
+  const { token, setErrorMessage, setErrorContext,setToken } = useContext(AppContext);
   const [isLoading, setIsLoading] = useState(!token);
   const [userData, setUserData] = useState<UserData>({
     name: "",
@@ -41,8 +41,14 @@ const Profile: React.FC = () => {
         setUserData({ name, profilePicture, dateOfBirth });
       })
       .catch((error) => {
-        setErrorMessage((error as Error).message);
+        const err = error as AxiosError<{message: string}>;
+        const message = (err?.response?.data?.hasOwnProperty('message')) ? (err.response.data['message']) : (error['message'])
+        setErrorMessage(message);
         setErrorContext("There was an error fetching the user data!");
+        if(error.response.status === 401) {
+          localStorage.removeItem('authToken')
+          setToken(null)
+        }
         console.error("There was an error fetching the user data!", error);
       })
       .finally(() => {

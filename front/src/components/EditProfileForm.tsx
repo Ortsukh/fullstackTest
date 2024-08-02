@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 import styled from "styled-components";
 import { AppContext } from "../AppContext";
 import Spinner from "./spinner/Spinner";
@@ -36,8 +36,10 @@ const EditProfileForm: React.FC = () => {
         }));
       } catch (error) {
         setIsLoading(false);
-        setErrorMessage((error as Error).message);
-        setErrorContext("There was an error fetching the user data!");
+        const err = error as AxiosError<{message: string}>;
+        const message = (err?.response?.data?.hasOwnProperty('message')) ? (err.response.data['message']) : (err['message'])
+        setErrorMessage(message);
+        setErrorContext("An error occurred while submitting the form");
         console.error("There was an error fetching the user data!", error);
       }
     };
@@ -90,7 +92,9 @@ const EditProfileForm: React.FC = () => {
       setIsLoading(false);
       console.log("UserModel profile updated:", response.data);
     } catch (error) {
-      setErrorMessage((error as Error).message);
+      const err = error as AxiosError<{message: string}>;
+      const message = (err?.response?.data?.hasOwnProperty('message')) ? (err.response.data['message']) : (err['message'])
+      setErrorMessage(message);
       setErrorContext("An error occurred while submitting the form");
       setIsLoading(false);
       console.error("There was an error updating the user profile!", error);

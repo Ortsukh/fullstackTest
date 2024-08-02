@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 import styled from "styled-components";
 import dayjs from "dayjs";
 import { AppContext } from "../AppContext";
@@ -17,7 +17,7 @@ interface User {
 
 const People: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const { token, setErrorMessage, setErrorContext } = useContext(AppContext);
+  const { token,setToken, setErrorMessage, setErrorContext } = useContext(AppContext);
   const [isLoading, setIsLoading] = useState(!token);
 
   useEffect(() => {
@@ -37,9 +37,14 @@ const People: React.FC = () => {
         setUsers(response.data);
       })
       .catch((error) => {
-        setErrorMessage((error as Error).message);
+        const err = error as AxiosError<{message: string}>;
+        const message = (err?.response?.data?.hasOwnProperty('message')) ? (err.response.data['message']) : (error['message'])
+        setErrorMessage(message);
         setErrorContext("There was an error fetching the user data!");
-        console.error("There was an error fetching the users!", error);
+        if(error.response.status === 401) {
+          localStorage.removeItem('authToken')
+          setToken(null)
+        }
       })
       .finally(() => {
         setIsLoading(false);
